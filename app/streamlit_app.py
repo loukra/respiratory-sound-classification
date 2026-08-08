@@ -5,7 +5,6 @@ import io
 import os
 import sys
 import urllib.request
-from io import BytesIO
 
 import numpy as np
 import soundfile as sf
@@ -58,7 +57,10 @@ def load_model():
     if not os.path.exists(MODEL_PATH):
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-    return keras.models.load_model(MODEL_PATH, compile=False)
+    model = keras.models.load_model(MODEL_PATH, compile=False)
+    # dummy inference so TF traces the graph now, not on the first user request
+    model.predict(np.zeros((1, 224, 224, 3)), verbose=0)
+    return model
 
 
 with st.sidebar:
@@ -78,6 +80,10 @@ with st.sidebar:
   If in doubt, it is best to seek a doctor's opinion. """)
 
 
+# warm up the model while the user reads the instructions / records,
+# so the first prediction doesn't stall on the 270 MB download
+model = load_model()
+
 col1, col2, col3 = st.columns([1, 3, 1])
 with col2:
     holder = st.empty()
@@ -85,13 +91,11 @@ with col2:
         val = st_audiorec()
 
     if isinstance(val, dict):
-        # retrieve audio data from the component's byte dict
-        ind, val = zip(*val['arr'].items())
+        # reassemble the component's {position: byte} dict into raw audio bytes
+        ind, vals = zip(*val['arr'].items())
         ind = np.array(ind, dtype=int)
-        val = np.array(val)
-        sorted_ints = val[ind]
-        stream = BytesIO(b"".join([int(v).to_bytes(1, "big") for v in sorted_ints]))
-        audio_bytes = stream.read()
+        vals = np.array(vals)
+        audio_bytes = vals[np.argsort(ind)].astype(np.uint8).tobytes()
 
         if audio_bytes:
             data_origin, samplerate = sf.read(io.BytesIO(audio_bytes))
@@ -105,7 +109,6 @@ with col2:
                 holder.empty()
                 with st.spinner('Asking the Doc...'):
                     preprocessor = preprocess.AudioPreprocessor()
-                    model = load_model()
                     predictor = predict.MyPredictor(model, preprocessor)
 
                     # trim to a whole number of seconds

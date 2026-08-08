@@ -76,7 +76,7 @@ Inspecting the misclassified spectrograms shows that prediction errors are domin
 
 ## Web app
 
-The model is served through a Streamlit app ([`app/`](app)) with a custom in-browser audio recorder component (Media API → WAV → prediction), shown in the demo GIF above. On first start it downloads the trained model from the release automatically.
+**[▶ Try it live](https://respiratory-sound-classification.streamlit.app)** — the model is served through a Streamlit app ([`app/`](app)) with a custom in-browser audio recorder component (Media API → WAV → prediction), shown in the demo GIF above. On first start it downloads the trained model from the release automatically. (Free hosting: the app may need a moment to wake up, and predictions take a few seconds on the shared CPU.)
 
 Run it locally:
 
