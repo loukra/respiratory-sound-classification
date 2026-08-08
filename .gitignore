@@ -144,8 +144,6 @@ respiratory_classification.pdf
 
 respiratory_classification.pptx
 
-# The audio recorder component ships its compiled frontend (exempt from build/)
-!app/st_audiorec/frontend/build/
 
 # Model weights (published via GitHub Releases)
 models/

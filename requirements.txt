@@ -1,7 +1,7 @@
 # Portable environment for the Streamlit app and model inference (Python 3.9-3.11).
 # The model was originally trained with tensorflow-macos 2.8 on Apple Silicon;
 # tensorflow 2.15 still bundles Keras 2 and loads the .h5 weights unchanged.
-streamlit>=1.35
+streamlit>=1.40
 tensorflow==2.15.*
 numpy==1.26.*
 librosa==0.10.*
