@@ -107,8 +107,8 @@ with st.sidebar:
 4. After at least 8 seconds, stop the recording — the analysis starts automatically. Longer recordings (15–20 s) give a more reliable result.
 """)
     st.image(
-        Image.open(os.path.join(APP_DIR, "adam.jpg")),
-        caption="Recommended microphone position (illustration: A.D.A.M.)",
+        Image.open(os.path.join(APP_DIR, "lungs_app.jpg")),
+        caption="Place the microphone on your chest, as shown",
     )
 
 
