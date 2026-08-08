@@ -25,14 +25,21 @@ MODEL_PATH = os.path.join(APP_DIR, os.pardir, "models", "ResNet.h5")
 TARGET_SR = 4000
 MIN_SECONDS = 16
 
+st.set_page_config(
+    page_title="Respiratory Health Classifier",
+    page_icon="🫁",
+    layout="centered",
+)
+
 with open(os.path.join(APP_DIR, "style.css")) as f:
     design = f.read()
 st.html(f"""
 <style>
 {design}
 </style>
-<div style="text-align:center">
-  <h1 style="font-family:Arial">You Breath, We Classify</h1>
+<div class="hero">
+  <h1>You Breathe, We Classify</h1>
+  <p>AI-assisted screening from 16 seconds of lung sounds</p>
   <span class="dot"></span>
 </div>
 """)
@@ -63,6 +70,27 @@ def load_model():
     return model
 
 
+def result_card(y_pred):
+    healthy = y_pred > 0.5
+    pct = 5 * round((y_pred if healthy else 1 - y_pred) * 100 / 5)
+    cls = "healthy" if healthy else "diseased"
+    text = (
+        "probability that your respiratory system is <b>healthy</b>"
+        if healthy
+        else "probability that your respiratory system is <b>diseased</b> — "
+             "consider seeking a doctor's opinion"
+    )
+    st.html(f"""
+<div class="result-card {cls}">
+  <div class="result-pct">≈ {pct} %</div>
+  <div class="result-text">{text}</div>
+  <div class="gauge"><div class="gauge-fill" style="width:{pct}%"></div></div>
+  <div class="result-note">This is an AI estimate from a student research project,
+  not a medical diagnosis. If in doubt, always consult a doctor.</div>
+</div>
+""")
+
+
 with st.sidebar:
     st.title("Respiratory Health Classifier")
     st.markdown("""This project is designed to detect whether your respiratory system is diseased or healthy. To get a reasonable result:
@@ -76,49 +104,41 @@ with st.sidebar:
   """)
     st.image(Image.open(os.path.join(APP_DIR, "adam.jpg")))
     st.markdown("[Picture Taken from A.D.A.M](https://ssl.adam.com/graphics/images/en/23267.jpg)")
-    st.markdown("""Please remember that this is not a medical diagnosis.
-  If in doubt, it is best to seek a doctor's opinion. """)
 
 
 ensure_model_file()
 model = load_model()
 
-col1, col2, col3 = st.columns([1, 3, 1])
-with col2:
-    audio = st.audio_input(f"Record your breathing for at least {MIN_SECONDS} seconds")
+audio = st.audio_input(f"Record your breathing for at least {MIN_SECONDS} seconds")
 
-    if audio is not None:
-        data_origin, samplerate = sf.read(audio)
+if audio is not None:
+    data_origin, samplerate = sf.read(audio)
 
-        # recordings may be mono or stereo depending on the device
-        wav = data_origin[:, 0] if data_origin.ndim > 1 else data_origin
+    # recordings may be mono or stereo depending on the device
+    wav = data_origin[:, 0] if data_origin.ndim > 1 else data_origin
 
-        data = librosa.resample(y=wav, orig_sr=samplerate, target_sr=TARGET_SR)
-        duration = data.shape[0] / TARGET_SR
+    data = librosa.resample(y=wav, orig_sr=samplerate, target_sr=TARGET_SR)
+    duration = data.shape[0] / TARGET_SR
 
-        if duration >= MIN_SECONDS:
-            with st.spinner('Asking the Doc...'):
-                preprocessor = preprocess.AudioPreprocessor()
-                predictor = predict.MyPredictor(model, preprocessor)
+    if duration >= MIN_SECONDS:
+        with st.spinner('Asking the Doc...'):
+            preprocessor = preprocess.AudioPreprocessor()
+            predictor = predict.MyPredictor(model, preprocessor)
 
-                # trim to a whole number of seconds
-                data = data[: int(TARGET_SR * np.floor(duration))]
-                y_pred = predictor.predict(data)
+            # trim to a whole number of seconds
+            data = data[: int(TARGET_SR * np.floor(duration))]
+            y_pred = predictor.predict(data)
 
-            if y_pred > 0.5:
-                st.success(
-                    f"There is a higher probability of about {5 * round((y_pred * 100) / 5)} % "
-                    "that your respiratory system is healthy"
-                )
-            else:
-                st.error(
-                    f"There is a higher probability of about {5 * round(((1 - y_pred) * 100) / 5)} % "
-                    "that your respiratory system is diseased. "
-                    "Please remember that this is not a medical diagnosis. "
-                    "If in doubt, it is best to seek a doctor's opinion."
-                )
-        else:
-            st.error(
-                f"The recording is only {duration:.0f} seconds long — "
-                f"it must be at least {MIN_SECONDS} seconds to obtain a result."
-            )
+        result_card(y_pred)
+    else:
+        st.error(
+            f"The recording is only {duration:.0f} seconds long — "
+            f"it must be at least {MIN_SECONDS} seconds to obtain a result."
+        )
+
+st.html("""
+<div class="app-footer">
+  Built with TensorFlow &amp; Streamlit ·
+  <a href="https://github.com/loukra/respiratory-sound-classification">Model &amp; code on GitHub</a>
+</div>
+""")

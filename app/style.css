@@ -1,27 +1,88 @@
-.dot {
-    height: 25px;
-    width: 25px;
-    background-color: #bbb;
-    border-radius: 70%;
-    display: inline-block;
-    transform: scale(1);
-    animation: pulse-black 4s infinite;
-    margin: 1em;
-  }
+/* hero header */
+.hero {
+  text-align: center;
+  padding: 0.5rem 0 1rem 0;
+}
+.hero h1 {
+  font-family: "Source Sans Pro", Arial, sans-serif;
+  font-size: 2.4rem;
+  color: #1f6f74;
+  margin-bottom: 0.2rem;
+}
+.hero p {
+  color: #6b7f80;
+  font-size: 1.05rem;
+  margin: 0 0 1rem 0;
+}
 
-  @keyframes pulse-black {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
-    }
-    
-    50% {
-      transform: scale(2);
-      box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
-    }
-    
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-    }
-  }
+/* breathing indicator */
+.dot {
+  height: 22px;
+  width: 22px;
+  background-color: #0e8388;
+  border-radius: 50%;
+  display: inline-block;
+  animation: breathe 4s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%   { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(14, 131, 136, 0.35); }
+  50%  { transform: scale(1.6); box-shadow: 0 0 0 18px rgba(14, 131, 136, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(14, 131, 136, 0); }
+}
+
+/* recorder widget as a card */
+[data-testid="stAudioInput"] {
+  background: #ffffff;
+  border: 1px solid #dce8e8;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 4px 18px rgba(14, 131, 136, 0.10);
+}
+
+/* result card */
+.result-card {
+  border-radius: 14px;
+  padding: 1.3rem 1.5rem;
+  margin-top: 1rem;
+  border: 1px solid;
+}
+.result-card.healthy  { background: #f0faf5; border-color: #bfe6d2; }
+.result-card.diseased { background: #fdf3f3; border-color: #f0c8c8; }
+.result-pct {
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.result-card.healthy  .result-pct { color: #1e7d4f; }
+.result-card.diseased .result-pct { color: #c0392b; }
+.result-text {
+  font-size: 1.05rem;
+  margin: 0.3rem 0 0.9rem 0;
+  color: #31333f;
+}
+.gauge {
+  height: 10px;
+  border-radius: 5px;
+  background: #e8eeee;
+  overflow: hidden;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 5px;
+}
+.result-card.healthy  .gauge-fill { background: #2e9d63; }
+.result-card.diseased .gauge-fill { background: #d64550; }
+.result-note {
+  font-size: 0.85rem;
+  color: #6b7f80;
+  margin-top: 0.9rem;
+}
+
+/* app footer */
+.app-footer {
+  text-align: center;
+  color: #9ab0b1;
+  font-size: 0.85rem;
+  margin-top: 3rem;
+}
+.app-footer a { color: #0e8388; text-decoration: none; }
