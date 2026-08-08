@@ -1,154 +1,123 @@
+# Respiratory Sound Classification
 
-# Respiratory Health Classification
-
-## Introduction
-The Respiratory Health Classifier is a telemedical online lung auscultation system that automatically returns the probability of having healthy airways.
+**Detecting respiratory disease from lung sounds with deep learning** — a ResNet50V2 transfer-learning model that classifies breath audio recordings as healthy or suspicious, deployed as a browser-based recording app.
 
 ![Respiratory_Health_Classifier](https://user-images.githubusercontent.com/111969813/205322753-578b534d-b647-4011-a88d-30f3927309fd.gif)
- 
 
-
-## Table of contents
-* [Motivation](#Motivation)
-* [Project status](#Project-status)
-* [Training and validation data](Training-and-validation-datasets)
-* [Programming](#Programming)
-  * [Preprocessing and augmentation](#Preprocessing-and-augmentation)
-  * [Deep convolutional neural network](#Deep-convolutional-neural-network)
-  * [Client applications](#Client-applications)
-* [Server/cloud](#Server/cloud)
-* [Confidentiality](#Confidentiality)
-* [Demo](#Demo)
-  * [App1 (full web application)](App1)
-  * [App2 (Streamlit application)](App2)
-  * [App3 (mobile phone application)](App3)
-* [Local editing](Local-editing)
-* [Authors](Authors)
-* [Links](Links)
-* [Acknowledgements](Acknowledgements)
+> ⚠️ **Disclaimer**: Model predictions are for reference only and must never replace medical advice from a doctor.
 
 ## Motivation
-[Seven percent of the humanity](https://www.thelancet.com/journals/lanres/article/PIIS2213-2600(20)30157-0/fulltext) suffer from chronic respiratory diseases, mainly COPD. 3.9 million persons died from them in 2017, and even more became disabled. Before COVID19, the one-year global incidence of acute respiratory diseases was already near to 100%. COPD is the third and lower respiratory infections the fourth [global leading cause of death](https://www.who.int/news-room/fact-sheets/detail/the-top-10-causes-of-death).
 
-Telehealth reduces the burden on medical resources, saves the patients´ time and money, and is easily accessible. Telemedical care [increased during the COVID-19 pandemic](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7532385/). The [evolution of convolutional neural networks](https://ieeexplore.ieee.org/document/9156454) further contributes to this increase.
-## Project status
+Chronic respiratory diseases affect roughly [7% of humanity](https://www.thelancet.com/journals/lanres/article/PIIS2213-2600(20)30157-0/fulltext), and COPD is the [third leading cause of death worldwide](https://www.who.int/news-room/fact-sheets/detail/the-top-10-causes-of-death). Auscultation (listening to lung sounds) is cheap and non-invasive, but requires a trained clinician. This project explores whether a neural network can perform a first-pass screening from a simple microphone or digital stethoscope recording — making telehealth triage accessible to anyone with a phone or laptop.
 
-|Training and validation data &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp;||
-|---|---|
-|[ICBHI data](https://www.kaggle.com/datasets/vbookshelf/respiratory-sound-database)| &ensp; &check;&emsp;|
-|[Steth data](https://data.mendeley.com/datasets/jwyy9np4gv/3)| &ensp; &check;&emsp;|
-|[HF_Lung_V1 data](https://gitlab.com/techsupportHF/HF_Lung_V1)||
-|Microphone data||
-|Training data from the apps||
+## How it works
 
-|Network programming| &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp;||
+![Pipeline overview](assets/pipeline_overview.png)
+
+Raw breath recordings are sliced into chunks, converted to log-mel spectrograms, and classified by a fine-tuned convolutional neural network. A web app records audio in the browser and returns the probability of healthy airways.
+
+## Data
+
+Two public datasets of annotated lung auscultation recordings were combined:
+
+- [ICBHI Respiratory Sound Database](https://www.kaggle.com/datasets/vbookshelf/respiratory-sound-database) (126 participants)
+- [Mendeley electronic-stethoscope dataset](https://data.mendeley.com/datasets/jwyy9np4gv/3) (112 participants)
+
+![Dataset overview](assets/dataset_overview.png)
+
+That's **238 participants** (37% female, infancy to >90 years) providing ~7 hours of auscultation audio: 61 healthy and 177 diseased (124 chronic — predominantly COPD and asthma — and 53 acute). The labels are heavily **imbalanced** (~74% diseased), which shaped the preprocessing strategy below.
+
+## Preprocessing & augmentation
+
+Audio is sliced into **8-second chunks** and converted to log-mel spectrograms. The class imbalance is tackled at the slicing stage: healthy recordings are cut with **90% overlap** and diseased recordings with only **10% overlap**, oversampling the minority class to a nearly balanced training set.
+
+![Sound slicing](assets/preprocessing_slicing.png)
+
+Residual pieces are zero-pre-padded to keep every chunk the same length, then each chunk is transformed into a log-mel spectrogram image:
+
+![Waveform to spectrogram](assets/preprocessing_spectrogram.png)
+
+The resulting **5,530 spectrograms** (train 2,948 / validation 950 / test 1,632) are further augmented with random frequency masking (horizontal bars), time masking (vertical bars), and random volume reduction:
+
+![Augmentation](assets/augmentation.png)
+
+## Model
+
+**Transfer learning with ResNet50V2** (TensorFlow/Keras), pre-trained on ImageNet:
+
+1. Replace the 1000-class output with a densely connected layer and a single sigmoid output (healthy vs. suspicious).
+2. Freeze the base model and train the new head.
+3. Unfreeze and fine-tune the entire network with a 40× smaller initial learning rate.
+
+A classical **SVM baseline** on the same features was built for comparison — the CNN wins on overall accuracy and, crucially, on recall for the healthy class:
+
+![SVM vs CNN](assets/svm_vs_cnn.png)
+
+## Results
+
+On a held-out test group of **57 patients**, the model reaches **84% accuracy** — compared to 67% for medical students and 73% for medical residents [reported in the literature](https://www.nature.com/articles/s41598-021-96724-7) for the same task:
+
+![Performance vs medical baselines](assets/performance_vs_medical.png)
+
+![Confusion matrix](assets/confusion_matrix.png)
+
+| Metric | Diseased | Healthy |
 |---|---|---|
-|**Model1:**|- distinction between healthy and suspicious| &ensp; &check;&emsp;|
-||- area under the receiver operating characteristic curve||
-|**Model2:**|- is acute or chronic more probable?||
-|**Model3:**|- most probable diagnosis||
+| Precision | 83% | 88% |
+| Recall | 94% | 67% |
 
-|Performance of model1 given a recall of 95% for the respiratory ill &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; ||
-|---|---|
-|Threshold for the predicted probability|&nbsp; 52% |
-|Recall for the respiratory healthy|&nbsp; 67% |
-|[Accuracy level reached (0 to 4)](https://www.nature.com/articles/s41598-021-96724-7/figures/4)| &nbsp; 3 |
+The threshold is deliberately tuned for **high recall on the diseased class** — for a screening tool, missing an ill patient is worse than a false alarm.
 
-|Client app programming &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp;&emsp;|App1|App2|App3|
-|---|:---:|:---:|:---:|
-|Main functionality|&check;|&check;||
-|Full functionality|&check;|||
-|Table for further improvement|&check;|||
-|Communication with the model||&check;||
-|More factors than respiration and smoking||||
-## Training and validation data
-The ICBHI and Steth datasets include a total of 238 participants (37% girls/women) from infancy to >90 years old. 177 suffered from respiratory diseases, of which 124 were chronic, predominately COPD (75 cases) and asthma (34 cases). The participants provided 25618 seconds of respiratory auscultation, namely 2570 by the respiratory healthy and 23048 by the respiratory ill. The breath cycles lasted - on the average of individual averages of the ICBHI set - 2.4 seconds in the healthy, 2.2 in the acutely ill, and 3.0 in the chronically ill.
-## Programming
-The most important programming steps are a deep convolutional neural network and client apps.
-### Preprocessing and augmentation
-The units for training the network are equally large images obtained from the wav audio files as follows:
-- slicing to eight-second audio chunks with 90% overlap for sounds from respiratory healthy and 10% for such from respiratory ill persons; i.e. data from the healthy is augmented more than that from the diseased to increase its proportion to nearly 50%
-- zero-pre-padding of residual pieces, split-up of noises into volumes by Fourier transformation, and conversion into spectrograms
-- further augmentation with random volume reduction (darkening), random frequency masking (horizontal bars of zeros), and random time frame masking (vertical bars of zeros)
-### Deep convolutional neural network
-Transfer learning with ResNet50V2 pre-trained on the [ImageNet Classification Problem](https://keras.io/api/applications/resnet/#resnet50v2-function):
-- Tensor flow python module
-- 47 convolutional layers, a max pooling layer, an average pooling layer, and a fully connected output layer with 1000 nodes and softmax activation function
-- replacement of the original output layer by a densely-connected output layer with 2048 weights, sigmoid activation function, and one final output
-- first freezing of the original layers and training of the new output layer, then retraining of the entire network with a 40 times smaller initial learning rate
-### Client apps
-App1 is built with HTML, CSS, and JavaScript, app2 with [Streamlit](https://streamlit.io), app3 will run locally on mobile phones. They include:
-- during the initial state:
-  - a train button with instructions to improve the quality
-  - a more button to this readme file
-  - a contact button to the members of this project
-  - a scroll menu to collect more heterogenous training data
-  - a button to start the 16-second recording phase
-- during the return state:
-  - the probability of having health airways with and without smoking
-  - thresholds below which consulting a physician is recommended respectively urgent (traffic light system)
-  - a copy of the record for the user
-  - a table with possibilities to further improve the recording quality
-## Server/cloud
-Currently Streamlit and [GitHub](https://github.com/loukra/RespiratoryApp)
-## Confidentiality
-The additional training data collected within this project is anonymous. Audio files with other content than breath cycles, such as voices, etc., are immediately deleted. The users have the possibility to indicate if they
-- suspect an airway illness.
-- have sound airways.
-- have sick airways.
+### Error analysis
 
-In the latter case, they can further check one of these options:
-- any respiratory illness.
-- a diagnosis out of a list of of the most common acute and chronic respiratory diseases.
+Inspecting the misclassified spectrograms shows that prediction errors are dominated by **recording quality**: strong background noise or recordings with little usable breath signal:
 
-That´s all. The function to collect data will be implemented later.
+![Error analysis](assets/error_analysis.png)
 
-## Demo
-### [App1 (full web application)](https://medscoops.com/capstone)
-### [App2 (Streamlit application)](https://loukra-respiratoryapp-streamlit-app-deploy-qhc6bz.streamlit.app)
-### App3 (Mobile phone application - to do)
-## Local editing
+## Web app
 
-Clone the project
+The model is served through a Streamlit app with a custom in-browser audio recorder component (Media API → WAV → prediction), shown in the demo GIF above. The app lives in its own repository: [loukra/RespiratoryApp](https://github.com/loukra/RespiratoryApp).
+
+## Repository structure
 
 ```
-git clone git@github.com:loukra/Respiratory_Disease_Classification.git
+├── ResNet50_Transfer_Learning.ipynb   # main training notebook
+├── notebooks/
+│   ├── Preprocessing/                 # slicing, padding, spectrograms, dataset balancing
+│   └── Model/                         # SVM baseline, clustering, ensemble experiments
+├── scripts/                           # reusable preprocessing & prediction modules
+├── data/                              # dataset annotations & diagnosis metadata (no audio)
+└── assets/                            # figures used in this README
 ```
 
-Go to the project directory
+Raw audio is not included — download the datasets from the links in the [Data](#data) section.
 
-```
-cd Respiratory_Disease_Classification
-```
-Create Virtual Envirnment 
+## Setup
 
-```
-pyenv local 3.9.8
-python -m venv .venv
+```bash
+git clone git@github.com:loukra/respiratory-sound-classification.git
+cd respiratory-sound-classification
+make setup          # pyenv 3.9.8 + venv + requirements
 source .venv/bin/activate
 ```
 
-Install dependencies
+## Future work
 
-```
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-## Authors
+- Multi-class output: distinguish adventitious sounds (crackles, wheezes, rhonchi) and acute vs. chronic disease
+- More training data (HF_Lung_V1, app-collected recordings)
+- A mobile app running the model on-device
 
-- [@Louis Krause](https://www.github.com/loukra)
-- [@Li Xie](https://www.github.com/loukra)
-- [@Dr. med. Rafael Cámara](https://www.github.com/loukra)
-## 🔗 Links
-[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://katherineoelsner.com/)
-[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/)
-[![twitter](https://img.shields.io/badge/twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/)
-## Acknowledgements
-- [Neue Fische data science coaches: know how](https://www.neuefische.de/team)
-- [Arduino Project Hub: idea](https://create.arduino.cc/projecthub/mixpose/digital-stethoscope-ai-1e0229)
-- [Project Coswara: skin and structure](https://coswara.iisc.ac.in/?locale=en-US)
-- This readme
-  - [How to write a good README: know how](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-  - [Awesome README: inspiration](https://github.com/aregtech/areg-sdk#readme)
-## Appendix
+## About this project
 
+Built as the capstone project of the [neuefische Data Science bootcamp](https://www.neuefische.de) (2022) together with [Rafael Cámara](https://github.com/medscoops) (epidemiologist & MD) and [Li Xie](https://github.com/puenktchenli) (PhD Biophysics). My focus was data preprocessing, augmentation, and model training.
+
+This is my curated portfolio version of the [original group repository](https://github.com/loukra/Respiratory_Disease_Classification), which remains unchanged — the full commit history is preserved here, so individual contributions stay verifiable.
+
+- **Louis Krause** — [GitHub](https://github.com/loukra) · [LinkedIn](https://www.linkedin.com/in/louis-krause)
+
+## References
+
+1. Nguyen & Pernkopf, ["Lung Sound Classification Using Co-Tuning and Stochastic Normalization"](https://doi.org/10.1109/TBME.2022.3156293), IEEE Trans. Biomed. Eng. 69(9), 2022
+2. Fraiwan et al., ["A dataset of lung sounds recorded from the chest wall using an electronic stethoscope"](https://doi.org/10.1016/j.dib.2021.106913), Data Brief 35, 2021
+3. Kim et al., ["Respiratory sound classification for crackles, wheezes, and rhonchi in the clinical field using deep learning"](https://doi.org/10.1038/s41598-021-96724-7), Sci Rep 11, 2021
+4. He et al., ["Deep Residual Learning for Image Recognition"](https://arxiv.org/abs/1512.03385), CVPR 2016
