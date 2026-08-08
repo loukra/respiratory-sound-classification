@@ -101,6 +101,22 @@ make setup          # pyenv 3.9.8 + venv + requirements
 source .venv/bin/activate
 ```
 
+### Trained model
+
+The fine-tuned ResNet50V2 weights (270 MB) are published as a [release asset](https://github.com/loukra/respiratory-sound-classification/releases/tag/v1.0.0):
+
+```bash
+gh release download v1.0.0 --pattern ResNet.h5 --dir models
+# or without the GitHub CLI:
+curl -L --create-dirs -o models/ResNet.h5 \
+  https://github.com/loukra/respiratory-sound-classification/releases/download/v1.0.0/ResNet.h5
+```
+
+```python
+import tensorflow as tf
+model = tf.keras.models.load_model("models/ResNet.h5")
+```
+
 ## Future work
 
 - Multi-class output: distinguish adventitious sounds (crackles, wheezes, rhonchi) and acute vs. chronic disease

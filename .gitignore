@@ -143,3 +143,6 @@ images_balanced
 respiratory_classification.pdf
 
 respiratory_classification.pptx
+
+# Model weights (published via GitHub Releases)
+models/
