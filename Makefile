@@ -1,6 +1,9 @@
-.PHONY: setup
+.PHONY: setup run
+
 setup:
-		pyenv local 3.9.8
-		python -m venv .venv
+		python3.11 -m venv .venv
 		.venv/bin/python -m pip install --upgrade pip
 		.venv/bin/python -m pip install -r requirements.txt
+
+run:
+		.venv/bin/python -m streamlit run app/streamlit_app.py

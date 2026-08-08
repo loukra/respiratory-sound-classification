@@ -76,7 +76,13 @@ Inspecting the misclassified spectrograms shows that prediction errors are domin
 
 ## Web app
 
-The model is served through a Streamlit app with a custom in-browser audio recorder component (Media API → WAV → prediction), shown in the demo GIF above. The app lives in its own repository: [loukra/RespiratoryApp](https://github.com/loukra/RespiratoryApp).
+The model is served through a Streamlit app ([`app/`](app)) with a custom in-browser audio recorder component (Media API → WAV → prediction), shown in the demo GIF above. On first start it downloads the trained model from the release automatically.
+
+Run it locally:
+
+```bash
+make setup && make run
+```
 
 ## Repository structure
 
@@ -85,6 +91,7 @@ The model is served through a Streamlit app with a custom in-browser audio recor
 ├── notebooks/
 │   ├── Preprocessing/                 # slicing, padding, spectrograms, dataset balancing
 │   └── Model/                         # SVM baseline, clustering, ensemble experiments
+├── app/                               # Streamlit app with in-browser audio recorder
 ├── scripts/                           # reusable preprocessing & prediction modules
 ├── data/                              # dataset annotations & diagnosis metadata (no audio)
 └── assets/                            # figures used in this README
@@ -97,7 +104,7 @@ Raw audio is not included — download the datasets from the links in the [Data]
 ```bash
 git clone git@github.com:loukra/respiratory-sound-classification.git
 cd respiratory-sound-classification
-make setup          # pyenv 3.9.8 + venv + requirements
+make setup          # Python 3.11 venv + requirements
 source .venv/bin/activate
 ```
 
