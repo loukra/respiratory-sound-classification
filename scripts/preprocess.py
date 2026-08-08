@@ -1,6 +1,8 @@
+"""Turn a raw audio vector into a batched dataset of spectrogram images
+matching the model's training input (8-second chunks, 224x224 RGB)."""
+
 import audio_utils
 from matplotlib import pyplot as plt
-import os
 from librosa.display import specshow
 import io
 import tensorflow as tf
@@ -11,8 +13,6 @@ class AudioPreprocessor(object):
         self.sr = 4000
 
     def preprocess(self, wav):
-        #wav, sr = audio_utils.read_wav(filepath)
-        #print(sr)
         splitted_wav = audio_utils.arr_split(wav, fs=self.sr, length=8, annotation=None, overlap=0.5)
         
         size = splitted_wav.shape[0]
@@ -24,7 +24,6 @@ class AudioPreprocessor(object):
             plt.axis('off')  # no axis
             plt.axes([0., 0., 1., 1.], frameon=False, xticks=[], yticks=[])
             specshow(log_mel, sr=self.sr,fmax=self.sr/2) 
-            # plt.savefig(image_folder + "/" + str(idx),  bbox_inches="tight", pad_inches=0)
 
             io_buf = io.BytesIO()
             fig.savefig(io_buf, format='rgba')

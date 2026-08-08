@@ -2,7 +2,7 @@
 
 **Detecting respiratory disease from lung sounds with deep learning** — a ResNet50V2 transfer-learning model that classifies breath audio recordings as healthy or suspicious, deployed as a browser-based recording app.
 
-![Respiratory_Health_Classifier](https://user-images.githubusercontent.com/111969813/205322753-578b534d-b647-4011-a88d-30f3927309fd.gif)
+![Demo: recording breath sounds and receiving a healthy-airways probability](assets/demo.gif)
 
 > ⚠️ **Disclaimer**: Model predictions are for reference only and must never replace medical advice from a doctor.
 
