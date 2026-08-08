@@ -23,7 +23,9 @@ MODEL_URL = (
 MODEL_PATH = os.path.join(APP_DIR, os.pardir, "models", "ResNet.h5")
 
 TARGET_SR = 4000
-MIN_SECONDS = 16
+# the model analyzes 8-second windows, so 8 s is the hard minimum;
+# longer recordings yield several windows whose predictions are averaged
+MIN_SECONDS = 8
 
 st.set_page_config(
     page_title="Respiratory Health Classifier",
@@ -39,7 +41,7 @@ st.html(f"""
 </style>
 <div class="hero">
   <h1>You Breathe, We Classify</h1>
-  <p>AI-assisted screening from 16 seconds of lung sounds</p>
+  <p>AI-assisted screening from a few breaths of lung sound</p>
   <span class="dot"></span>
 </div>
 """)
@@ -103,7 +105,7 @@ with st.sidebar:
 1. Place the microphone directly on the bare skin of your chest, at the position shown below.
 2. Press the microphone button to start.
 3. Breathe deeply in and out through your mouth.
-4. After at least 16 seconds, stop the recording — the analysis starts automatically.
+4. After at least 8 seconds, stop the recording — the analysis starts automatically. Longer recordings (15–20 s) give a more reliable result.
 """)
     st.image(
         Image.open(os.path.join(APP_DIR, "adam.jpg")),
