@@ -28,7 +28,7 @@ TARGET_SR = 4000
 MIN_SECONDS = 8
 
 st.set_page_config(
-    page_title="Respiratory Health Classifier",
+    page_title="Respiratory Health Check",
     page_icon="🫁",
     layout="centered",
 )
@@ -93,11 +93,11 @@ def result_card(y_pred):
 
 
 with st.sidebar:
-    st.title("Respiratory Health Classifier")
+    st.title("Respiratory Health Check")
     st.markdown(
-        "Records your breathing through the microphone and estimates the "
-        "probability of healthy airways with a deep neural network trained "
-        "on clinical lung auscultation data."
+        "Listens to your breathing through the microphone and estimates "
+        "how likely your airways are healthy. The analysis is powered by a "
+        "neural network trained on clinical lung-sound recordings."
     )
     st.markdown("#### Getting a reliable recording")
     st.markdown("""
