@@ -40,9 +40,8 @@ st.html(f"""
 {design}
 </style>
 <div class="hero">
-  <h1>You Breathe, We Classify</h1>
+  <h1>Your lungs, heard<span class="dot"></span></h1>
   <p>AI-assisted screening from a few breaths of lung sound</p>
-  <span class="dot"></span>
 </div>
 """)
 
